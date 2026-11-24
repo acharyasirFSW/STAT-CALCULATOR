@@ -1,57 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STAT Calculator</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
-  <script src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-    h1 { color: #333; text-align: center; }
-    .board { width: 100%; height: 450px; margin: 20px 0; background: white; border: 1px solid #ccc; border-radius: 8px; }
-    .tab-buttons { display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-    .tab-btn.active { background: #0056b3; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-  </style>
-</head>
-<body>
-  <h1>📊 Statistical Calculator</h1>
-  <div class="tab-buttons">
-    <button class="tab-btn active" onclick="showTab('normal', event)">Normal</button>
-    <button class="tab-btn" onclick="showTab('binomial', event)">Binomial</button>
-    <button class="tab-btn" onclick="showTab('t-dist', event)">T-Distribution</button>
-    <button class="tab-btn" onclick="showTab('chi2', event)">Chi²</button>
-    <button class="tab-btn" onclick="showTab('f-dist', event)">F-Distribution</button>
-    <button class="tab-btn" onclick="showTab('calc', event)">Calculator</button>
-  </div>
-  <div id="normal" class="tab-content active"><div id="normal-distribution" class="board"></div></div>
-  <div id="binomial" class="tab-content"><div id="binomial-distribution" class="board"></div></div>
-  <div id="t-dist" class="tab-content"><div id="t-distribution" class="board"></div></div>
-  <div id="chi2" class="tab-content"><div id="chi2-distribution" class="board"></div></div>
-  <div id="f-dist" class="tab-content"><div id="f-distribution" class="board"></div></div>
-  <div id="calc" class="tab-content"><div id="calculation" class="board"></div></div>
-
-  <!-- main.js MUST be first! -->
-  <script src="main.js"></script>
-  <script src="normaldist.js"></script>
-  <script src="binomdist.js"></script>
-  <script src="tdist.js"></script>
-  <script src="chi2dist.js"></script>
-  <script src="fdist.js"></script>
-  <script src="calc.js"></script>
-
-  <script>
-    function showTab(name, event) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(name).classList.add('active');
-      event.target.classList.add('active');
-    }
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Statistics Calculator</title>
+    <meta name="description" content="Interactive statistics calculator and distribution visualizer for Normal, Student's t, Binomial, Chi-Square, and F distributions, with data lists, 1-variable statistics, and linear regression." />
+    <meta property="og:title" content="Statistics Calculator" />
+    <meta property="og:description" content="Interactive statistics calculator and distribution visualizer for Normal, Student's t, Binomial, Chi-Square, and F distributions, with data lists, 1-variable statistics, and linear regression." />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
+  </head>
+  <body class="bg-white text-slate-900 min-h-screen antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
