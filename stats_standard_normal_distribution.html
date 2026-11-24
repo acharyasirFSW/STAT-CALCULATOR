@@ -1,0 +1,263 @@
+<!--
+	- Get Zoom Square functionality working
+	- Set up z1 and z2 so that when hidden, the value of the original varaibles are not lost
+	- Get shading of outer probabilities setup
+-->
+
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+
+	<title></title>
+	<meta charset="utf-8">  
+
+		<!-- JSX Graph -->
+		<script type="text/javascript" charset="UTF-8" src="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.3/distrib/jsxgraphcore.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.3/distrib/jsxgraph.css" />
+
+		<!-- Mine -->
+		<script src='./js/MathFunctions.js' type='text/javascript'></script>
+		<script src='./js/helpers.js' type='text/javascript'></script>
+
+	</meta>
+</head>
+
+<body>
+
+<h1>Standard Normal Distribution</h1>
+z1 = <input type="text" id="input_z1" value="">
+&emsp;&emsp;z2 = <input type="text" id="input_z2" value="">
+&emsp;&emsp;<input type="button" value="Update" onClick="update()">
+&emsp;&emsp;<input type="button" value="Toggle Fullscreen" onClick="fullscreen()">
+&emsp;&emsp;<input type="button" value="Toggle Zoom Panel" onClick="toggle_zoomPanel()">
+
+</br></br>
+
+<div>
+	<div id="jxgbox" class="jxgbox" style="width:720px; height:640px; float:left; resize: both"></div>
+	<div id="display" class="jxgbox" style="width:320px; height:640px; float:left"></div>
+</div>
+
+<script type='text/javascript'>
+		
+var board = JXG.JSXGraph.initBoard('jxgbox', {
+		boundingbox: [-4,0.6,4,-0.2], 
+      	showCopyright: false, 
+      	showNavigation: true,
+		keepaspectratio: false,
+		axis: false,
+      	zoom: {
+            factorX: 1.25,
+            factorY: 1.25,
+            wheel: false,
+            needshift: false,
+            eps: 0.1
+        },	
+		pan: {
+			enabled: false
+		}
+    });
+		
+var displayboard = JXG.JSXGraph.initBoard('display', {
+		boundingbox: [0,10,12,0], 
+      	showCopyright: false, 
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		pan: { enabled: false }
+    });			
+		
+
+// Set up x-zoom and y-zoom sliders
+setupZoomPanel(board, { visible: false, xinit: 8, yinit: 0.8, ymax: 10, xstart: 0.65, ystart: 0.05 });
+
+normal_curve = board.create('functiongraph', [ 
+	function(x) { 
+		return normalpdf(x); 
+	} ], 
+	{ 
+		strokeWidth: 3, 
+		fixed: true, 
+		highlight: false,
+		strokeColor: '#0000FF'
+	});
+	
+hidden_axis = board.create('line', [[0, 0], [1, 0]], { visible: false });
+x_axis = board.create('axis', [[0, 0], [1, 0]], 
+	{ ticks: { majorHeight: 10, drawZero: true }});
+	
+z1 = board.create('glider', [-2, 0, hidden_axis], { name: 'z1' });
+z1.on('drag', 
+	function() { 
+		displayboard.update(); 
+	});
+
+z2 = board.create('glider', [2, 0, hidden_axis], { name: 'z2' });
+z2.on('drag', 
+	function() { 
+		displayboard.update(); 
+	}); 
+
+shadedregionleft = board.create('integral', [[
+	function() { return -10000; }, 
+	function() { return z1.X(); }], 
+	normal_curve], 
+	{ 
+		color: '#00ff00', 
+		fillOpacity: 0.3, 
+		withLabel: false,
+		fixed: true,
+		highlight: false,
+		visible: false,
+	});
+shadedregionleft.curveLeft.setAttribute( { visible: false } );
+shadedregionleft.curveRight.setAttribute( { visible: false } );
+
+shadedregionright = board.create('integral', [[
+	function() { return z2.X();}, 
+	function() { return 10000; }], 
+	normal_curve], 
+	{ 
+		color: '#00ff00', 
+		fillOpacity: 0.3, 
+		withLabel: false,
+		fixed: true,
+		highlight: false,
+		visible: false,
+		
+	});
+shadedregionright.curveLeft.setAttribute( { visible: false } );
+shadedregionright.curveRight.setAttribute( { visible: false } );
+
+shadedregionbetween = board.create('integral', [[
+	function() { return z1.X(); }, 
+	function() { return z2.X(); }], 
+	normal_curve], 
+	{ 
+		color: '#00ff00', 
+		fillOpacity: 0.3, 
+		withLabel: false,
+		fixed: true,
+		highlight: false,
+		visible: true,
+	});
+shadedregionbetween.curveLeft.setAttribute( { visible: false } );
+shadedregionbetween.curveRight.setAttribute( { visible: false } );
+
+cb_between = JSXCheckbox(displayboard, 1, 6, 'Between', true, 
+	function() {
+		setCheckbox(cb_left, false);
+		setCheckbox(cb_right, false);
+		setCheckbox(cb_twotail, false);
+		
+		z1.setAttribute({ visible: true });
+		z2.setAttribute({ visible: true });
+		
+		shadedregionleft.setAttribute({ visible: false });
+		shadedregionright.setAttribute({ visible: false });
+		shadedregionbetween.setAttribute({ visible: true });
+		
+	}, { fontSize: 18 });
+
+cb_left = JSXCheckbox(displayboard, 1, 5.5, 'Left-Tailed', false,
+	function() {
+		setCheckbox(cb_between, false);
+		setCheckbox(cb_right, false);
+		setCheckbox(cb_twotail, false);
+		
+		z1.setAttribute({ visible: true });
+		z2.setAttribute({ visible: false });
+		
+		shadedregionleft.setAttribute({ visible: true });
+		shadedregionright.setAttribute({ visible: false });
+		shadedregionbetween.setAttribute({ visible: false });
+        displayboard.update();
+		
+	}, { fontSize: 18 });
+
+cb_right = JSXCheckbox(displayboard, 1, 5, 'Right-Tailed', false,
+	function() {
+		setCheckbox(cb_between, false);
+		setCheckbox(cb_left, false);
+		setCheckbox(cb_twotail, false);
+		
+		z1.setAttribute({ visible: false });
+		z2.setAttribute({ visible: true });
+		
+		shadedregionleft.setAttribute({ visible: false });
+		shadedregionright.setAttribute({ visible: true });
+		shadedregionbetween.setAttribute({ visible: false });
+        displayboard.update();
+	
+	}, { fontSize: 18 });
+
+cb_twotail = JSXCheckbox(displayboard, 1, 4.5, 'Two-Tailed', false,
+	function() {
+		setCheckbox(cb_between, false);
+		setCheckbox(cb_left, false);
+		setCheckbox(cb_right, false);
+		
+		z1.setAttribute({ visible: true });
+		z2.setAttribute({ visible: true });
+		
+		shadedregionleft.setAttribute({ visible: true });
+		shadedregionright.setAttribute({ visible: true });
+		shadedregionbetween.setAttribute({ visible: false });
+        displayboard.update();
+		
+	}, { fontSize: 18 });
+
+area_text = displayboard.create('text', [1, 8, 
+	function() { 
+		return 'Area = ' + currentProbability(z1.X(), z2.X()); 
+	}], { fontSize: 24, fixed: true });
+		
+z1_txt = displayboard.create('text', [1, 7.5, 
+	function() { 
+		if(cb_right.Value()) {
+			return '';
+		} else return 'z1 = ' + z1.X().toFixed(2); 
+	}], { fontSize: 24, fixed: true });
+
+z2_txt = displayboard.create('text', [1, 7, 
+	function() { 
+		if(cb_left.Value()) {
+			return '';
+		} else
+		return 'z2 = ' + z2.X().toFixed(2); 
+	}], { fontSize: 24, fixed: true });
+
+function currentProbability(x1, x2) { 
+	x1 = Math.round(100 * x1) / 100;
+	x2 = Math.round(100 * x2) / 100;
+	if(cb_between.Value()) { 
+		return Math.abs(normalcdf(x2) - normalcdf(x1)).toFixed(4);
+	} else if(cb_left.Value()) {
+		return normalcdf(x1).toFixed(4);
+	} else if(cb_right.Value()) {
+		return (1 - normalcdf(x2)).toFixed(4);
+	} else if(cb_twotail.Value()) {
+	return (normalcdf(x1) + (1 - normalcdf(x2))).toFixed(4);
+	}
+}
+
+function update() {
+	var s1 = document.getElementById("input_z1").value;
+	var s2 = document.getElementById("input_z2").value;
+	
+	if(!isNaN(s1)) {
+		z1.moveTo([s1, 0]);
+	}
+	
+	if(!isNaN(s2)) {
+		z2.moveTo([s2, 0]);
+	}
+	
+	displayboard.update();
+	board.update();
+}
+	
+</script>
+</body>
+</html>

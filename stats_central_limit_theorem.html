@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+
+	<title>Central Limit Theorem</title>
+	<meta charset="utf-8">  
+
+		<!-- JSX Graph -->
+		<script type="text/javascript" charset="UTF-8" src="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.3/distrib/jsxgraphcore.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.3/distrib/jsxgraph.css" />
+
+		<!-- jStat.js -->
+		<script src="https://cdn.jsdelivr.net/npm/jstat@1.9.5/dist/jstat.min.js"></script>
+	
+		<!-- MathJax -->
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({ tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}, });
+		</script>
+		<script type="text/javascript" src="./MathJax-2.2-latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+
+		<!-- Mine -->
+		<script src='./js/MathFunctions.js' type='text/javascript'></script>
+		<script src='./js/helpers.js' type='text/javascript'></script>
+
+	</meta>
+</head>
+
+<body>
+
+<h1>Central Limit Theorem</h1>
+Sample Size: <input type="text" id="sample_size" value="32"> &emsp;&emsp;
+n Samples: <input type="text" id="samples" value="1"> &emsp;&emsp;
+<input type="button" value="Add a Sample" onClick="process()"> &emsp;&emsp;
+<label for="dist">Population Distribution:&ensp;</label>
+  <select name="dist" id="dist_type">
+    <option value="uniform">Uniform</option>
+    <option value="normal">Normal</option>
+    <option value="leftskew">Skewed Left</option>
+    <option value="rightskew">Skewed Right</option>
+  </select> &emsp;&emsp;&emsp;&emsp;
+<input type="button" value="Toggle Fullscreen" onClick="fullscreen()">
+<br/><br/>
+
+<div>
+	<div id="jxgbox" class="jxgbox" style="width:720px; height:640px; float:left; resize: both"></div>
+	<div id="textoutput" class="jxgbox" style="width:300px; height:640px; float:left"></div>
+	<div id="histogram" class="jxgbox" style="width:300px; height:320px; float:left"></div>
+	<div id="samplehistogram" class="jxgbox" style="width: 300px; height: 320px; float:left"></div>
+</div>
+
+<script type='text/javascript'>
+
+JXG.Options.text.useMathJax = true;
+
+var board = JXG.JSXGraph.initBoard('jxgbox', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+    });
+
+var textoutputboard = JXG.JSXGraph.initBoard('textoutput', {
+		boundingbox: [0,10,12,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		pan: {
+			enabled: false
+		}
+    });
+
+var histogramboard = JXG.JSXGraph.initBoard('histogram', {
+		boundingbox: [0,800,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: true,
+		pan: {
+			enabled: true
+		}
+    });
+
+var samplehistogramboard = JXG.JSXGraph.initBoard('samplehistogram', {
+		boundingbox: [0, 10, 9, 0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		pan: {
+			enabled: false
+		}
+    });
+
+/// GLOBAL CONSTANTS
+
+const MAXROWS = 50;
+const MAXCOLUMNS = 108;
+const VERTICALSPACING = 0.2;
+
+/// GLOBAL VARIABLES
+
+let sampleSize = 0;
+
+let population = [];
+let populationData = [];  // Individual data items in the population
+let populationBins = [];  // Frequencies of each population item
+
+JXG.Options.board.minimizeReflow = 'all';
+
+initialize();
+
+function initialize() {
+
+	sampleSize = document.getElementById('sample_size').value;
+	let populationType = document.getElementById('dist_type').value;
+
+	texts = [];
+
+	populationData = createPopulation(populationType);
+	populationBins = calculateFrequencies(populationData);
+
+	for(let r = 0; r < MAXROWS; r++) {
+		let textline = '';
+		for(let c = 0; c < MAXCOLUMNS; c++) {
+			textline += populationData[r * MAXCOLUMNS + c];
+		}
+		let y = 9.9 - VERTICALSPACING * r;
+		texts.push(board.create('text', [0, y, textline], { highlight: false, fixed: true } ));
+		population.push(textline);
+	}
+
+	samples = [];
+	samplemeans = [];
+
+	meanOutput = textoutputboard.create('text', [1, 9, 'Sample Means: ']);
+	populationMeanOutput = textoutputboard.create('text', [6, 2, function() { return '$\\mu_{ \\bar{x} }=$' }], { fontSize: 18, fixed: true });
+	population_txt = textoutputboard.create('text', [1, 2, function() { return '$\\mu=$ ' + formatNumber(stats.mean(populationData), 4); }], { fontSize: 18, fixed: true });
+	populationstdev = textoutputboard.create('text', [6, 1.25, function() { return '$\\sigma_{ \\bar{x} } =$ '; }], { fontSize: 18 });
+
+	popdivsqrtn = textoutputboard.create('text', [0.5, 1.25, function() { return '$ \\frac{\\sigma}{\\sqrt{' + sampleSize + '}}=$ ' + formatNumber(stats.stdevp(populationData) / sqrt(sampleSize), 4); }], { fontSize: 18, fixed: true });
+	nSamples = textoutputboard.create('text', [1, 0.5, 'Number of Samples: 0']);
+
+	poplulationhistogram = JSXHistogram(histogramboard, [0], populationBins);
+	let bounds = JSXGetBounds(histogramboard);
+	bounds.ymax = 1.2 * stats.max(populationBins);
+	JSXSetBounds(histogramboard, bounds);
+
+}
+
+function process() {
+
+	board.suspendUpdate();
+	textoutputboard.suspendUpdate();
+	histogramboard.suspendUpdate();
+	samplehistogramboard.suspendUpdate();
+
+	var n = document.getElementById('samples').value;
+
+	for(var i = 0; i < parseInt(n) - 1; i++) {
+		addSample(false);
+	}
+	addSample(true);
+
+	// Display results
+	board.unsuspendUpdate();
+	textoutputboard.unsuspendUpdate();
+	histogramboard.unsuspendUpdate();
+	samplehistogramboard.unsuspendUpdate();
+
+	populationMeanOutput.setText(function() { return '$ \\mu_{ \\bar{x} } = $ ' + formatNumber(stats.mean(samplemeans), 4); });
+	populationstdev.setText(function() { return '$\\sigma_{ \\bar{x} } =$ ' + formatNumber(stats.stdevp(samplemeans), 4); });
+
+	popdivsqrtn.setText(function() { return '$ \\frac{\\sigma}{\\sqrt{' + sampleSize + '}} =$ ' + formatNumber(stats.stdevp(populationData) / sqrt(sampleSize), 4); });
+
+	nSamples.setText('Number of Samples: ' + samples.length);
+
+	// Set up the histogram for the samples, which should turn into a normal distribution
+
+	// Get the frequency distribution based on the newly created sample
+	[lcl, ucl, freq] = JSXFrequencyDistribution(samplemeans, 9, decimals = 4);
+	//for(var i = 0; i < freq.length; i++) {
+	//	console.log('Class[' + i + ']: ' + lcl[i] + ' - ' + ucl[i] + ' | ' + freq[i]);
+	//}
+
+	// Remove old histogram
+	samplehistogramboard.removeObject(samplehistogram);
+
+	for(el in samplehistogramboard.objects) {
+		samplehistogramboard.removeObject(samplehistogramboard.objects[el]);
+	}
+
+	// Check to see if the histogram bars are now too tall and adjust the
+	// window settings if they are
+	var maxfreq = stats.max(freq);
+	var bounds = JSXGetBounds(samplehistogramboard);
+
+	if(maxfreq > bounds.ymax) {
+		bounds.ymax = 1.2 * maxfreq;
+		//samplehistogramboard.setBoundingBox([bounds[0], bounds[2], bounds[3], bounds[1]], false);
+		JSXSetBounds(samplehistogramboard, bounds, false);
+	}
+
+	// Draw the new histogram
+	samplehistogram = JSXHistogram(samplehistogramboard, [0], freq);
+
+	textoutputboard.update();
+}
+
+function addSample(highlightValues) {
+
+
+	// remove all highlight tags from population
+	for(var i = 0; i < MAXROWS; i++) {
+		texts[i].setText(population[i]);
+	}
+
+	sampleSize = document.getElementById('sample_size').value;
+	outputText = "sample: ";
+	var sample = [];
+
+	for(var i = 0; i < sampleSize; i++) {
+
+		// Get a random value from the population
+		var row = randomInteger(0, MAXROWS-1);
+		var col = randomInteger(0, MAXCOLUMNS-1);
+		var value = population[row][col];
+		sample.push(parseInt(value));
+
+		if(highlightValues) {
+			// Highlight the random value that was chosen
+			var line = texts[row].plaintext;
+			var newLine = '';
+			var numbersInLine = [];
+			while (line.length > 0) {
+				var item = line[0];
+				line = line.substring(1, line.length);
+				if(Number.isInteger(parseInt(item))) {
+					numbersInLine.push(item);
+				} else {
+					numbersInLine.push('<' + line.substring(0, line.indexOf('</font>') + 7));
+					line = line.substring(line.indexOf('</font>') + 7, line.length);
+				}
+			}
+			if(!numbersInLine[col].includes('</font>')) {
+				numbersInLine[col] = '<font color="red" style="background-color:yellow; font-weight:bold">' + numbersInLine[col] + '</font>'
+			}
+			for(var k = 0; k < numbersInLine.length; k++) {
+				newLine += numbersInLine[k];
+			}
+
+			texts[row].setText(newLine);
+		}
+
+	}
+	samples.push(sample);
+
+	var mean_value = stats.mean(sample);
+	samplemeans.push(mean_value);
+	meanOutput.setText(meanOutput.plaintext + ' ' + formatNumber(mean_value, 4) + ',');
+
+}
+
+function createPopulation(populationType) {
+
+	let population = [];
+	let n = MAXROWS * MAXCOLUMNS;
+
+	if (populationType == 'uniform') {
+		let nValues = n / 10;
+		for (let k = 0; k < 10; k++) {
+			for (let i = 0; i < nValues; i++) {
+				population[k * nValues + i] = k;
+			}
+		}
+	} else {
+
+		let p = 0;
+
+		if (populationType == 'normal') {
+			p = 0.5;
+		} else if (populationType == 'leftskew') {
+			p = 0.22;
+		} else if (populationType == 'rightskew') {
+			p = 0.78;
+		}
+
+		let total = 0;
+		for (let k = 0; k < 10; k++) {
+			let nValues = round(n * jStat.binomial.pdf(k, 9, p));
+			total += nValues;
+			for (let i = 0; i < nValues; i++) {
+				population.push(k);
+			}
+		}
+		if (total < n) {
+			for (let i = total; i < n; i++) {
+				population.push(round(10 * p));
+			}
+		}
+	}
+
+	return shuffle(population);
+
+}
+
+function calculateFrequencies(populationData) {
+
+	let bins = new Array(10).fill(0);
+	let n = MAXROWS * MAXCOLUMNS;
+
+	for(var i = 0; i < n; i++) {
+		bins[populationData[i]] += 1;
+	}
+
+	return bins;
+
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang = "en-US">
+
+<!--
+
+TODO:
+
+  - Split up the main file into separate files
+  - Make all input boxes able to do input
+  - remove display texts in F and Chi-2 Distributions
+  - Update normal and t distribution to remove boxes for P( x < a ) and P (x > a)
+  - switch to math.eval() instead of Math.eval()
+
+  - fix dropdown menus to show up below the menu bar
+  - add extra output to confidence intervals
+  - Do error checking in all areas
+  - add 'about' button and 'help' button to calc screen
+
+
+
+-->
+
+<head>
+
+	<title>Statistics Calculator</title>
+	<meta charset="utf-8">
+
+	<script type="text/javascript" charset="UTF-8" src="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.3/distrib/jsxgraphcore.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.2.3/distrib/jsxgraph.css" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.5.0/math.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jstat@1.9.5/dist/jstat.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src='./js/MathFunctions.js' type='text/javascript'></script>
+    <script src="./js/dmath.js" type="text/javascript"></script>
+	<script src='./js/helpers.js' type='text/javascript'></script>
+
+	<style>
+		body {
+			font-family: Arial;
+		}
+
+		/* Style the tab */
+		.tab {
+			overflow: hidden;
+			border: 1px solid #ccc;
+			background-color: #f1f1f1;
+			width: 540px;
+		}
+
+		/* Style the buttons that are used to open the tab content */
+		.tab button {
+			background-color: inherit;
+			float: left;
+			border: none;
+			outline: none;
+			cursor: pointer;
+			padding: 14px 10px;
+			transition: 0.3s;
+			text-decoration: none;
+		}
+
+		/* Change background color of buttons on hover */
+		.tab button:hover {
+			background-color: #ddd;
+		}
+
+		/* Create an active/current tablink class */
+		.tab button.active {
+			background-color: #ccc;
+		}
+
+		/* Style the tab content */
+		.tabcontent {
+			display: none;
+			padding: 6px 12px;
+			border: 1px solid #ccc;
+			border-top: none;
+		}
+
+		.dropdown {
+			float: left;
+			overflow: hidden;
+		}
+
+		.dropdown .dropbtn {
+			border: none;
+			outline: none;
+			color: black;
+			padding: 14px 16px;
+			background-color: inherit;
+			font-family: inherit;
+			margin: 0;
+		}
+
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			background-color: #f9f9f9;
+			min-width: 160px;
+			box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+			z-index: 10;
+		}
+
+		.dropdown-content button {
+			float: none;
+			color: black;
+			padding: 12px 16px;
+			text-decoration: none;
+			display: block;
+			text-align: left;
+		}
+
+		.dropdown-content button:hover {
+			background-color: #ddd;
+		}
+
+		.dropdown:hover .dropdown-content {
+			display: block;
+		}
+
+		.btn-group input {
+			background-color: #e1e1e1; /* Green background */
+			border: 1px solid black; /* Green border */
+			color: black; /* White text */
+			padding: 10px 6px; /* Some padding */
+			cursor: pointer; /* Pointer/hand icon */
+			width: 50%; /* Set a width if needed */
+			display: block; /* Make the buttons appear below each other */
+			text-align:center
+		}
+
+		.btn-group button {
+			background-color: #4CAF50; /* Green background */
+			border: 1px solid green; /* Green border */
+			color: white; /* White text */
+			padding: 10px 24px; /* Some padding */
+			cursor: pointer; /* Pointer/hand icon */
+			width: 50%; /* Set a width if needed */
+			display: block; /* Make the buttons appear below each other */
+		}
+
+		.btn-group button:not(:last-child) {
+			border-bottom: none; /* Prevent double borders */
+		}
+
+		/* Add a background color on hover */
+		.btn-group button:hover {
+			background-color: #3e8e41;
+		}
+
+	</style>
+
+</head>
+
+<body>
+
+<h1>Statistics Calculator</h1>
+
+
+<!-- Tab links -->
+<div class="tab">
+	<button class="tablinks" id="defaultOpen" onclick="openTool(event, 'calculation')">Calc</button>
+	<button class="tablinks" onclick="openTool(event, 'list-editor')">List Editor</button>
+	<div class="dropdown">
+			<button class="dropbtn">Distributions<i class="fa fa-caret-down"></i></button>
+			<div class="dropdown-content">
+				<button class="tablinks" onclick="openTool(event, 'standard_normal')">Normal</button>
+				<button class="tablinks" onclick="openTool(event, 't-distribution')">Student's T</button>
+				<button class="tablinks" onclick="openTool(event, 'chi-distribution')">&Chi;<sup>2</sup></button>
+				<button class="tablinks" onclick="openTool(event, 'f-distribution')">F</button>
+				<button class="tablinks" onclick="openTool(event, 'binomial-distribution')">Binomial</button>
+			</div>
+		</div>
+	<div class="dropdown">
+		<button class="dropbtn">Estimates<i class="fa fa-caret-down"></i></button>
+		<div class="dropdown-content">
+			<button class="tablinks" onclick="openTool(event, 'z-interval')">Z Confidence Interval of the Mean</button>
+			<button class="tablinks" onclick="openTool(event, 't-interval')">T Confidence Interval of the Mean</button>
+			<button class="tablinks" onclick="openTool(event, 'prop-interval')">Z Confidence Interval for a Proportion</button>
+			<button class="tablinks" onclick="openTool(event, 'z-int_2samp')">Z Confidence Interval of Two Means</button>
+			<button class="tablinks" onclick="openTool(event, 't-int_2samp')">T Confidence Interval of Two Means</button>
+			<button class="tablinks" onclick="openTool(event, 'prop-int_2samp')">Z Confidence Interval of Two Proportions</button>
+		</div>
+	</div>
+	<div class="dropdown">
+		<button class="dropbtn">Tests<i class="fa fa-caret-down"></i></button>
+		<div class="dropdown-content">
+			<button class="tablinks" onclick="openTool(event, 'z-test')">Z Test of a Mean</button>
+			<button class="tablinks" onclick="openTool(event, 't-test')">T Test of a Mean</button>
+			<button class="tablinks" onclick="openTool(event, 'prop-test')">Z Test of a Proportion</button>
+			<button class="tablinks" onclick="openTool(event, 'z-test_2samp')">Z Test of Two Means</button>
+			<button class="tablinks" onclick="openTool(event, 't-test_2samp')">T Test of Two Means</button>
+			<button class="tablinks" onclick="openTool(event, 'prop-test_2samp')">Z Test of Two Proportions</button>
+		</div>
+	</div>
+</div>
+
+<!-- Tab content -->
+<div id="standard_normal" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="t-distribution" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="chi-distribution" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="f-distribution" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="binomial-distribution" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="calculation" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="list-editor" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="z-interval" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="t-interval" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="prop-interval" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="z-int_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="t-int_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="prop-int_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="z-test" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="t-test" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="prop-test" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="z-test_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="t-test_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+<div id="prop-test_2samp" class="jxgbox" style="width:540px; height:540px;"></div>
+
+<script>
+function openTool(evt, tool) {
+	// Declare all variables
+	var i, tabcontent, tablinks;
+
+	// Get all elements with class="tabcontent" and hide them
+	tabcontent = document.getElementsByClassName("jxgbox");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	tabcontent = document.getElementsByClassName("btn-group");
+	for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+	}
+
+	// Get all elements with class="tablinks" and remove the class "active"
+	tablinks = document.getElementsByClassName("tablinks");
+	for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+	}
+
+	// Show the current tab, and add an "active" class to the button that opened the tab
+	document.getElementById(tool).style.display = "block";
+	evt.currentTarget.className += " active";
+}
+document.getElementById("defaultOpen").click();
+</script>
+
+
+<script>
+	// Define global variables
+
+	var shadeParam = {
+		color: '#0000FF',
+		fillOpacity: 0.4,
+		withLabel: false,
+		fixed: true,
+		highlight: false,
+		curveLeft: { visible: false },
+		curveRight: { visible: false },
+	};
+
+	var textParam = {
+		fontSize: 18,
+		frozen: true,
+		fixed: true,
+		highlight: false,
+		anchorY: 'top'
+	};
+
+	var inputParam = {
+		fontSize: 18,
+		cssStyle: 'width: 100px',
+		frozen: true,
+		fixed: true,
+		anchorY: 'top'
+	}
+
+    let integerInputParam = {
+        fontSize: 18,
+		cssStyle: 'width: 50px',
+		frozen: true,
+		fixed: true,
+		anchorY: 'top'     
+    }
+
+	var buttonParam = {
+		frozen: true,
+		anchorY: 'top'
+	}
+
+	var curveParam = { 
+		strokeWidth: 3, 
+		fixed: true, 	
+		highlight: false, 
+		strokeColor: '#0000FF',
+	}
+
+	var PTYPE = 'between';
+
+	var BETWEEN = 0;
+	var LEFT = 1;
+	var RIGHT = 2;
+	var EQUAL = 3;
+
+	var LEFTTAIL = 0;
+	var RIGHTTAIL = 1;
+	var TWOTAIL = 2;
+
+	var MAXLISTSIZE = 50;
+
+	var PRECISION = 9;
+	var DEC_PREC = Math.pow(10, -PRECISION)
+
+</script>
+
+
+<!-- Load the individual boards -->
+<script src="./statscalc/normaldist.js"></script>
+<script src="./statscalc/binomdist.js"></script>
+<script src="./statscalc/tdist.js"></script>
+<script src="./statscalc/fdist.js"></script>
+<script src="./statscalc/chi2dist.js"></script>
+<script src="./statscalc/calc.js"></script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////// List Editor /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var list_board = JXG.JSXGraph.initBoard('list-editor', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: true,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: true
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var list1_data = [];
+var list2_data = [];
+var list3_data = [];
+
+// These status flags can be 'unsorted', 'ascending', or 'descending', depending on the
+// current sort order, this just allows the button to toggle the sort order
+
+let list_sortStatus = {
+    l1: 'unsorted',
+    l2: 'unsorted',
+    l3: 'unsorted',
+}
+
+let list_title1 = list_board.create('button', [1.25, 9.6, 'L1', () => {
+    list_sortStatus.l1 = list_sort(list1_data, list_sortStatus.l1);
+}], { fixed: true, fontSize: 18 });
+
+let list_title2 = list_board.create('button', [3.25, 9.6, 'L2', () => {
+    list_sortStatus.l2 = list_sort(list2_data, list_sortStatus.l2);
+}], { fixed: true, fontSize: 18 });
+
+let list_title3 = list_board.create('button', [5.25, 9.6, 'L3', () => {
+    list_sortStatus.l3 = list_sort(list3_data, list_sortStatus.l3);
+}], { fixed: true, fontSize: 18 });
+
+function list_getValues(list) {
+    let a = list.map( (x) => math.evaluate(x.rendNodeInput.value));
+    return a.filter( (x) => x !== undefined)
+}
+
+function list_setValues(list, data) {
+    data.forEach( (x, i) => list[i].rendNodeInput.value = data[i]);
+}
+
+function list_clearList(list) {
+    list.forEach( (x, i) => list[i].rendNodeInput.value = "");
+}
+
+function list_sort(list, order) {
+    let data = list_getValues(list);
+    if (order === 'ascending') {
+        data.sort( (a, b) => b - a );
+        order = 'descending';
+    } else {
+        data.sort( (a, b) => a - b );
+        order = 'ascending';
+    }
+    list_clearList(list);
+    list_setValues(list, data);
+    return order;
+}
+
+var list_clear_button1 = list_board.create('button', [7.5, 8, 'Clear L1', () => { list_clearList(list1_data) }]);
+var list_clear_button2 = list_board.create('button', [7.5, 7.5, 'Clear L2', () => { list_clearList(list2_data) }]);
+var list_clear_button2 = list_board.create('button', [7.5, 7, 'Clear L3', () => { list_clearList(list3_data) }]);
+
+var list_formula = list_board.create('input', [7.5, 5.5, '', ''], { fontSize: 18, cssStyle: 'width: 100px', fixed: true });
+list_formula.rendNodeInput.onkeypress = function(e) {
+	if(e.which == 13) {
+		list_calculate();
+	}
+};
+
+var list_calculate_button = list_board.create('button', [7.5, 4.5, 'Apply Formula', function() { list_calculate(); }], { fixed : true });
+
+function list_calculate() {
+
+	var formula = list_formula.rendNodeInput.value.toLowerCase();
+
+	if (formula.startsWith('l1')) {
+
+		var parts = formula.split('=');
+		for(var i = 0; i < list1_data.length; i++) {
+			if (list2_data[i].rendNodeInput.value !== '') {
+				var val2 = evalstr(list2_data[i].rendNodeInput.value);
+				var val3 = evalstr(list3_data[i].rendNodeInput.value);
+				var scope = { l2: val2, l3: val3 };
+				list1_data[i].rendNodeInput.value = round(math.evaluate(formula, scope), PRECISION);
+			}
+		}
+
+	} else if (formula.startsWith('l2')) {
+
+		var parts = formula.split('=');
+		for(var i = 0; i < list2_data.length; i++) {
+			if (list1_data[i].rendNodeInput.value !== '') {
+				var val1 = evalstr(list1_data[i].rendNodeInput.value);
+				var val3 = evalstr(list3_data[i].rendNodeInput.value);
+				var scope = { l1: val1, l3: val3 };
+				list2_data[i].rendNodeInput.value = round(math.evaluate(formula, scope), PRECISION);
+			}
+		}
+	} else if (formula.startsWith('l3')) {
+
+		var parts = formula.split('=');
+		for(var i = 0; i < list3_data.length; i++) {
+			if (list1_data[i].rendNodeInput.value !== '') {
+				var val1 = evalstr(list1_data[i].rendNodeInput.value);
+				var val2 = evalstr(list2_data[i].rendNodeInput.value);
+				var scope = { l1: val1, l2: val2 };
+				list3_data[i].rendNodeInput.value = round(math.evaluate(formula, scope), PRECISION);
+			}
+		}
+
+	} else {
+		alert('Error in list formula. The formula must begin with L1=, L2=, or L3= ');
+	}
+
+}
+
+// These are done in groups to make the tab order more sensible
+for (var i = 0; i < MAXLISTSIZE; i++) {
+	list1_data[i] = list_board.create('input', [0.5, 9 - i * 0.5, '', ''],
+		{ cssStyle: 'width: 100px', fixed: true, fontSize: 18 });
+}
+
+for (var i = 0; i < MAXLISTSIZE; i++) {
+    list2_data[i] = list_board.create('input', [2.5, 9 - i * 0.5, '', ''],
+        { cssStyle: 'width: 100px', fixed: true, fontSize: 18 });
+}
+
+for (var i = 0; i < MAXLISTSIZE; i++) {
+    list3_data[i] = list_board.create('input', [4.5, 9 - i * 0.5, '', ''],
+		{ cssStyle: 'width: 100px', fixed: true, fontSize: 18 });
+}
+
+for(let i = 0; i < MAXLISTSIZE; i++) {
+    list1_data[i].rendNodeInput.onkeypress = function(e) {
+        if(e.which == 13) {
+            list2_data[0].rendNodeInput.focus();
+        }
+    };
+    list2_data[i].rendNodeInput.onkeypress = function(e) {
+        if(e.which == 13) {
+            list3_data[0].rendNodeInput.focus();
+        }
+    };
+    list3_data[i].rendNodeInput.onkeypress = function(e) {
+        if(e.which == 13) {
+            list1_data[0].rendNodeInput.focus();
+        }
+    };
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	//////////////////// Confidence Interval for the Mean (Normal) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var zint_board = JXG.JSXGraph.initBoard('z-interval', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+			enabled: false
+		},
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var zint_mean = zint_board.create('input', [0.5, 9, '', '<i>x&#772;</i> = '], inputParam);
+zint_mean.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint_docalc(); } };
+
+var zint_stdev = zint_board.create('input', [0.5, 8, '', '<i>&sigma;</i> = '], inputParam);
+zint_stdev.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint_docalc(); } };
+
+var zint_n = zint_board.create('input', [0.5, 7, '', '<i>n</i> = '], inputParam);
+zint_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint_docalc(); } };
+
+var zint_list = zint_board.create('input', [0.5, 6, 'L1', 'List: '], inputParam);
+zint_list.setAttribute( { disabled: true, strokeColor: 'lightgray' });
+zint_list.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint_docalc(); } };
+
+var zint_c = zint_board.create('input', [0.5, 5, '', '<i>c</i> = '], inputParam);
+zint_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint_docalc(); } };
+
+var zint_interval = zint_board.create('text', [0.5, 4, ''], textParam);
+
+var zint_cb_stats = JSXCheckbox(zint_board, 6, 8, 'Input from Stats', true,
+	function() {
+		setCheckbox(zint_cb_stats, true);
+		setCheckbox(zint_cb_data, false);
+		zint_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint_mean.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint_n.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var zint_cb_data = JSXCheckbox(zint_board, 6, 7, 'Input from Data', false,
+	function() {
+		setCheckbox(zint_cb_stats, false);
+		setCheckbox(zint_cb_data, true);
+		zint_list.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint_mean.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint_n.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var zint_calculate = zint_board.create('button', [6, 6, 'Calculate',
+	function() { zint_docalc(); }], buttonParam);
+
+function zint_docalc() {
+
+	var c = evalstr(zint_c.rendNodeInput.value);
+	var stdev = evalstr(zint_stdev.rendNodeInput.value);
+	var n = NaN, mean = NaN;
+	var listerror = false;
+
+	if(zint_cb_stats.Value()) {
+		n = evalstr(zint_n.rendNodeInput.value);
+		mean = evalstr(zint_mean.rendNodeInput.value);
+	} else {
+		var list = zint_list.rendNodeInput.value;
+		if (list.includes(',')) {
+			var lists = list.split(',');
+			var xdata = getRawData(getListByName(lists[0]));
+			var fdata = getRawData(getListByName(lists[1]));
+			if (xdata !== undefined && fdata !== undefined) {
+				n = xdata.length;
+				mean = stats.wmean(xdata, fdata);
+			} else {
+				listerror = true;
+			}
+		} else {
+			xdata = getRawData(getListByName(list));
+			if (xdata !== undefined) {
+				mean = stats.mean(xdata);
+				n = xdata.length;
+			} else {
+				listerror = true;
+			}
+		}
+	}
+
+	if (isNaN(c) || isNaN(n) || isNaN(mean) || isNaN(stdev)) {
+		if (listerror) {
+			zint_interval.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			zint_interval.setText('Oops! All inupt values must be either numeric or<br/>'
+				+ '&nbsp;&nbsp;&nbsp;mathematical expressions that evalaute to numbers.<br/><br/>'
+				+ 'One or more value is either missing or invalid.');
+		}
+	} else if (n <= 0) {
+		zint_interval.setText('Oops! The sample size, <i>n</i>, must be greater than zero.');
+	} else if ((c < 0) || (c >= 1)) {
+		zint_interval.setText('Oops! The level of confidence, <i>c</i>, must be a value<br/>'
+			+ '&nbsp;&nbsp;&nbsp; greater than or equal to zero and less than one.');
+	} else {
+
+		var z = Math.abs(jStat.normal.inv((1 - c) / 2, 0, 1));
+		var me = z * stdev / sqrt(n);
+		var lb = mean - me;
+		var ub = mean + me;
+
+		zint_interval.setText(
+			'(' + round(lb, PRECISION) + ', '
+			+ round(ub, PRECISION) + ')<br/>'
+			+ 'z<sub>c</sub> = ' + round(z, PRECISION) + '<br/>'
+			+ 'E = ' + round(me, PRECISION) + '<br/><br/>'
+			+ 'x&#772; = ' + round(mean, PRECISION) + '<br/>'
+			+ '&sigma; = ' + round(stdev, PRECISION) + '<br/>'
+			+ 'n = ' + n);
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	///////////////////////// Confidence Interval for the Mean (T) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var tint_board = JXG.JSXGraph.initBoard('t-interval', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var tint_mean = tint_board.create('input', [0.5, 9, '', '<i>x&#772;</i> = '], inputParam);
+tint_mean.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint_docalc(); } };
+
+var tint_stdev = tint_board.create('input', [0.5, 8, '', '<i>s</i> = '], inputParam);
+tint_stdev.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint_docalc(); } };
+
+var tint_n = tint_board.create('input', [0.5, 7, '', '<i>n</i> = '], inputParam);
+tint_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint_docalc(); } };
+
+var tint_list = tint_board.create('input', [0.5, 6, 'L1', 'List: '], inputParam);
+tint_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+tint_list.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint_docalc(); } };
+
+var tint_c = tint_board.create('input', [0.5, 5, '', '<i>c</i> = '], inputParam);
+tint_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint_docalc(); } };
+
+var tint_interval = tint_board.create('text', [0.5, 4, ''], textParam);
+
+var tint_cb_stats = JSXCheckbox(tint_board, 6, 8, 'Input from Stats', true,
+	function() {
+		setCheckbox(tint_cb_stats, true);
+		setCheckbox(tint_cb_data, false);
+		tint_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint_mean.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint_stdev.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint_n.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var tint_cb_data = JSXCheckbox(tint_board, 6, 7, 'Input from Data', false,
+	function() {
+		setCheckbox(tint_cb_stats, false);
+		setCheckbox(tint_cb_data, true);
+		tint_list.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint_mean.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint_n.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint_stdev.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var tint_calculate_button = tint_board.create('button', [6, 6, 'Calculate',
+	function() { tint_docalc(); }], buttonParam);
+
+function tint_docalc() {
+
+	var c = evalstr(tint_c.rendNodeInput.value);
+	var n = NaN, stdev = NaN, mean = NaN;
+	var listerror = false;
+
+	if(tint_cb_stats.Value()) {
+		n = evalstr(tint_n.rendNodeInput.value);
+		mean = evalstr(tint_mean.rendNodeInput.value);
+		stdev = evalstr(tint_stdev.rendNodeInput.value);
+	} else {
+		var list = tint_list.rendNodeInput.value;
+		if (list.includes(',')) {
+			var lists = list.split(',');
+			var xdata = getRawData(getListByName(lists[0]));
+			var fdata = getRawData(getListByName(lists[1]));
+			if (xdata !== undefined && fdata !== undefined) {
+				n = xdata.length;
+				mean = stats.wmean(xdata, fdata);
+				stdev = stats.wstdev(xdata, fdata);
+			} else {
+				listerror = true;
+			}
+		} else {
+			xdata = getRawData(getListByName(list));
+			if (xdata !== undefined) {
+				mean = stats.mean(xdata);
+				stdev = stats.stdev(xdata);
+				n = xdata.length;
+			} else {
+				listerror = true;
+			}
+		}
+	}
+
+	if(isNaN(c) || isNaN(n) || isNaN(mean) || isNaN(stdev)) {
+		if (listerror) {
+			tint_interval.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			tint_interval.setText('Oops! All inupt values must be either numeric or<br/>'
+				+ '&nbsp;&nbsp;&nbsp;mathematical expressions that evalaute to numbers.<br/><br/>'
+				+ 'One or more value is either missing or invalid.');
+			}
+	} else if (n <= 0) {
+		tint_interval.setText('Oops! The sample size, <i>n</i>, must be greater than zero.');
+	} else if ((c < 0) || (c >= 1)) {
+		tint_interval.setText('Oops! The level of confidence, <i>c</i>, must be a value<br/>'
+			+ '&nbsp;&nbsp;&nbsp; greater than or equal to zero and less than one.');
+	} else {
+		var t = Math.abs(jStat.studentt.inv((1 - c) / 2, n - 1));
+		var me = t * stdev / sqrt(n);
+		var lb = mean - me;
+		var ub = mean + me;
+
+		tint_interval.setText(
+			'(' + round(lb, PRECISION) + ', '
+			+ round(ub, PRECISION) + ')<br/>'
+			+ 't<sub>c</sub> = ' + round(t, PRECISION) + '<br/>'
+			+ 'E = ' + round(me, PRECISION) + '<br/><br/>'
+			+ 'x&#772; = ' + round(mean, PRECISION) + '<br/>'
+			+ 's = ' + round(stdev, PRECISION) + '<br/>'
+			+ 'n = ' + n);
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	///////////////////////// Confidence Interval for a Proportion /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var pint_board = JXG.JSXGraph.initBoard('prop-interval', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var pint_x = pint_board.create('input', [0.5, 9, '', '<i>x</i> = '], inputParam);
+pint_x.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint_docalc(); } };
+
+var pint_n = pint_board.create('input', [0.5, 8, '', '<i>n</i> = '], inputParam);
+pint_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint_docalc(); } };
+
+var pint_c = pint_board.create('input', [0.5, 7, '', '<i>c</i> = '], inputParam);
+pint_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint_docalc(); } };
+
+var pint_interval = pint_board.create('text', [0.5, 6, ''], textParam);
+
+var pint_calculate = pint_board.create('button', [6, 8, 'Calculate',
+	function() { pint_docalc(); }], buttonParam);
+
+function pint_docalc() {
+
+	var c = evalstr(pint_c.rendNodeInput.value);
+	var x = evalstr(pint_x.rendNodeInput.value);
+	var n = evalstr(pint_n.rendNodeInput.value);
+	var p = x / n;
+	var q = 1 - p;
+
+	var z = Math.abs(jStat.normal.inv((1 - c) / 2, 0, 1));
+	var me = z * sqrt(p * q / n);
+	var lb = p - me;
+	var ub = p + me;
+
+	if(n < x) {
+		pint_interval.setText('Oops! The sample size <i>n</i> must be larger than <i>x</i>.');
+	} else if ((c < 0) || (c > 1)) {
+		pint_interval.setText('Oops! The level of confidence, <i>c</i>, must be a value<br/>'
+			+ '&nbsp;&nbsp;&nbsp; greater than or equal to zero and less than one.');
+	} else if (isNaN(c) || isNaN(x) || isNaN(n)) {
+		pint_interval.setText('One or more input values is not a number,<br/>&nbsp;&nbsp;&nbsp;please check your input.');
+	} else {
+		pint_interval.setText(
+			'(' + round(lb, PRECISION)
+			+ ', ' + round(ub, PRECISION) + ')<br/>'
+			+ 'z<sub>c</sub> = ' + round(z, PRECISION) + '<br/><br/>'
+			+ 'p&#770; = ' + round(p, PRECISION) + '<br/>'
+			+ 'E = ' + round(me, PRECISION));
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	/////////////////// Confidence Interval for Two Means (Normal) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var zint2_board = JXG.JSXGraph.initBoard('z-int_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var zint2_mean1 = zint2_board.create('input', [0.5, 9, '', '<i>x&#772;<sub>1</sub></i> = '], inputParam);
+zint2_mean1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_std1 = zint2_board.create('input', [0.5, 8, '', '<i>&sigma;<sub>1</sub></i> = '], inputParam);
+zint2_std1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_n1 = zint2_board.create('input', [0.5, 7, '', '<i>n<sub>1</sub></i> = '], inputParam);
+zint2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_list1 = zint2_board.create('input', [0.5, 6, 'L1', '<i>List<sub>1</sub></i>: '], inputParam);
+zint2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+zint2_list1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_mean2 = zint2_board.create('input', [4, 9, '', '<i>x&#772;<sub>2</sub></i> = '], inputParam);
+zint2_mean2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_std2 = zint2_board.create('input', [4, 8, '', '<i>&sigma;<sub>2</sub></i> = '], inputParam);
+zint2_std2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_n2 = zint2_board.create('input', [4, 7, '', '<i>n<sub>2</sub></i> = '], inputParam);
+zint2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_list2 = zint2_board.create('input', [4, 6, 'L2', '<i>List<sub>2</sub></i>: '], inputParam);
+zint2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+zint2_list2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_c = zint2_board.create('input', [0.5, 5, '', '<i>c</i> = '], inputParam);
+zint2_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { zint2_docalc(); } };
+
+var zint2_interval = zint2_board.create('text', [0.5, 4, ''], textParam);
+
+var zint2_cb_stats = JSXCheckbox(zint2_board, 7.5, 8.5, 'Statistics', true,
+	function() {
+		setCheckbox(zint2_cb_stats, true);
+		setCheckbox(zint2_cb_data, false);
+		zint2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint2_mean1.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint2_n1.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint2_mean2.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint2_n2.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var zint2_cb_data = JSXCheckbox(zint2_board, 7.5, 8, 'Data', false,
+	function() {
+		setCheckbox(zint2_cb_stats, false);
+		setCheckbox(zint2_cb_data, true);
+		zint2_list1.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint2_mean1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint2_n1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint2_list2.setAttribute({ disabled: false, strokeColor: 'black' });
+		zint2_mean2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		zint2_n2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var zint2_calculate = zint2_board.create('button', [7.5, 7, 'Calculate',
+	function() { zint2_docalc(); }], buttonParam);
+
+function zint2_docalc() {
+
+	var c = evalstr(zint2_c.rendNodeInput.value);
+	var std1 = evalstr(zint2_std1.rendNodeInput.value);
+	var std2 = evalstr(zint2_std2.rendNodeInput.value);
+	var n1 = Number.NaN, n2 = Number.NaN, mean1 = Number.NaN, mean2 = Number.NaN;
+	var listerror = false;
+
+	if(zint2_cb_stats.Value()) {
+		n1 = evalstr(zint2_n1.rendNodeInput.value);
+		mean1 = evalstr(zint2_mean1.rendNodeInput.value);
+		n2 = evalstr(zint2_n2.rendNodeInput.value);
+		mean2 = evalstr(zint2_mean2.rendNodeInput.value);
+	} else {
+		var list1 = zint2_list1.rendNodeInput.value;
+		var list2 = zint2_list2.rendNodeInput.value;
+		var xdata1 = getRawData(getListByName(list1));
+		var xdata2 = getRawData(getListByName(list2));
+		if((xdata1 !== undefined) && (xdata2 !== undefined)) {
+			n1 = xdata1.length;
+			n2 = xdata2.length;
+			mean1 = stats.mean(xdata1);
+			mean2 = stats.mean(xdata2);
+		} else {
+			listerror = true;
+		}
+	}
+
+	if(isNaN(c) || isNaN(std1) || isNaN(std2) || isNaN(n1) || isNaN(n2) || isNaN(mean1) || isNaN(mean2)) {
+		if(listerror) {
+			zint2_interval.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			zint2_interval.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n1 < 0 || n2 < 0) {
+		zint2_interval.setText('Oops! The sample sizes must be positive numbers.');
+	} else if (c < 0 || c >= 1) {
+		zint2_interval.setText('Oops! The level of confidence, <i>c</i>, must be a value<br/>'
+			+ '&nbsp;&nbsp;&nbsp; greater than or equal to zero and less than one.');
+	} else {
+
+		var z = Math.abs(jStat.normal.inv((1 - c) / 2, 0, 1));
+		var me = z * sqrt( sqr(std1) / n1 + sqr(std2) / n2);
+		var center = mean1 - mean2;
+		var lb = center - me;
+		var ub = center + me;
+
+		zint2_interval.setText(
+			'(' + round(lb, PRECISION) + ', '
+			+ round(ub, PRECISION) + ')<br/><br/>'
+			+ 'z<sub>c</sub> = ' + round(z, PRECISION) + '<br/>'
+			+ 'E = ' + round(me, PRECISION) + '<br/><br/>'
+			+ '<table>'
+			+ '<tr>'
+			+ '<td style="width:160px"><i>x&#772;<sub>1</sub></i> = ' + round(mean1, PRECISION) + '</td>'
+			+ '<td style="width:160px"><i>&sigma;<sub>1</sub></i> = ' + round(std1, PRECISION) + '</td>'
+			+ '<td><i>n<sub>1</sub></i> = ' + n1 + '</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '<td><i>x&#772;<sub>2</sub></i> = ' + round(mean2, PRECISION) + '</td>'
+			+ '<td><i>&sigma;<sub>2</sub></i> = ' + round(std2, PRECISION) + '</td>'
+			+ '<td><i>n<sub>2</sub></i> = ' + n2 + '</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '<td><i>x&#772;<sub>1</sub></i> - <i>x&#772;<sub>2</sub></i> = ' + round(center, PRECISION) + '</td>'
+			+ '</tr>'
+			+ '</table>'
+		);
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	//////////////////////// Confidence Interval for Two Means (T) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var tint2_board = JXG.JSXGraph.initBoard('t-int_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+
+var tint2_mean1 = tint2_board.create('input', [0.5, 9, '', '<i>x&#772;<sub>1</sub></i> = '], inputParam);
+tint2_mean1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_std1 = tint2_board.create('input', [0.5, 8, '', '<i>s<sub>1</sub></i> = '], inputParam);
+tint2_std1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_n1 = tint2_board.create('input', [0.5, 7, '', '<i>n<sub>1</sub></i> = '], inputParam);
+tint2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_list1 = tint2_board.create('input', [0.5, 6, 'L1', '<i>List<sub>1</sub></i>: '], inputParam);
+tint2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+tint2_list1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_mean2 = tint2_board.create('input', [4, 9, '', '<i>x&#772;<sub>2</sub></i> = '], inputParam);
+tint2_mean2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_std2 = tint2_board.create('input', [4, 8, '', '<i>s<sub>2</sub></i> = '], inputParam);
+tint2_std2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_n2 = tint2_board.create('input', [4, 7, '', '<i>n<sub>2</sub></i> = '], inputParam);
+tint2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_list2 = tint2_board.create('input', [4, 6, 'L2', '<i>List<sub>2</sub></i>: '], inputParam);
+tint2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+tint2_list2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_c = tint2_board.create('input', [0.5, 5, '', '<i>c</i> = '], inputParam);
+tint2_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { tint2_docalc(); } };
+
+var tint2_interval = tint2_board.create('text', [0.5, 4, ''], textParam);
+
+var tint2_cb_pooled = JSXCheckbox(tint2_board, 4, 5, 'Pooled Variance', false,
+	function() {
+		toggleCheckbox(tint2_cb_pooled);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var tint2_cb_stats = JSXCheckbox(tint2_board, 7.5, 8.5, 'Statistics', true,
+	function() {
+		setCheckbox(tint2_cb_stats, true);
+		setCheckbox(tint2_cb_data, false);
+
+		tint2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+
+		tint2_mean1.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint2_std1.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint2_n1.setAttribute({ disabled: false, strokeColor: 'black' });
+
+		tint2_mean2.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint2_std2.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint2_n2.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var tint2_cb_data = JSXCheckbox(tint2_board, 7.5, 8, 'Data', false,
+	function() {
+		setCheckbox(tint2_cb_stats, false);
+		setCheckbox(tint2_cb_data, true);
+
+		tint2_list1.setAttribute({ disabled: false, strokeColor: 'black' });
+		tint2_list2.setAttribute({ disabled: false, strokeColor: 'black' });
+
+		tint2_mean1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint2_std1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint2_n1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+
+		tint2_mean2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint2_std2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		tint2_n2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var tint2_calculate = tint2_board.create('button', [7.5, 7, 'Calculate',
+	function() { tint2_docalc(); }], { frozen: true, anchorY: 'top' });
+
+function tint2_docalc() {
+
+	var c = evalstr(tint2_c.rendNodeInput.value);
+	var mean1 = NaN, std1 = NaN, n1 = NaN;
+	var mean2 = NaN, std2 = NaN, n2 = NaN;
+	var listerror = false;
+
+	if(tint2_cb_stats.Value()) {
+		mean1 = evalstr(tint2_mean1.rendNodeInput.value);
+		std1 = evalstr(tint2_std1.rendNodeInput.value);
+		n1 = evalstr(tint2_n1.rendNodeInput.value);
+		mean2 = evalstr(tint2_mean2.rendNodeInput.value);
+		std2 = evalstr(tint2_std2.rendNodeInput.value);
+		n2 = evalstr(tint2_n2.rendNodeInput.value);
+	} else {
+		var list1 = tint2_list1.rendNodeInput.value;
+		var list2 = tint2_list2.rendNodeInput.value;
+		var xdata1 = getRawData(getListByName(list1));
+		var xdata2 = getRawData(getListByName(list2));
+		if((xdata1 !== undefined) && (xdata2 !== undefined)) {
+			n1 = xdata1.length;
+			n2 = xdata2.length;
+			mean1 = stats.mean(xdata1);
+			mean2 = stats.mean(xdata2);
+			std1 = stats.stdev(xdata1);
+			std2 = stats.stdev(xdata2);
+		} else {
+			listerror = true;
+		}
+	}
+
+	var serr, df = 0;
+	if (isChecked(tint2_cb_pooled)) {
+		df = n1 + n2 - 2;
+		var pooledsd = sqrt( ((n1 - 1) * sqr(std1) + (n2 - 1) * sqr(std2)) / df);
+		serr = sqrt( sqr(pooledsd) / n1 + sqr(pooledsd) / n2);
+	} else {
+		serr = sqrt( sqr(std1) / n1 + sqr(std2) / n2);
+		var num = sqr( sqr(std1) / n1 + sqr(std2) / n2 );
+		var denom1 = (1 / (n1 - 1)) * sqr( sqr(std1) / n1 );
+		var denom2 = (1 / (n2 - 1)) * sqr( sqr(std2) / n2 );
+		df = num / (denom1 + denom2);
+	}
+
+	if(isNaN(c) || isNaN(std1) || isNaN(std2) || isNaN(n1) || isNaN(n2) || isNaN(mean1) || isNaN(mean2) || isNaN(df) || isNaN(serr)) {
+		if(listerror) {
+			tint2_interval.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			tint2_interval.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n1 <= 1 || n2 <= 1) {
+		tint2_interval.setText('Oops! The sample sizes must be greater than one.');
+	} else if (c < 0 || c >= 1) {
+		tint2_interval.setText('Oops! The level of confidence, <i>c</i>, must be a value<br/>'
+			+ '&nbsp;&nbsp;&nbsp; greater than or equal to zero and less than one.');
+	} else {
+
+		var t = Math.abs(jStat.studentt.inv((1 - c) / 2, df));
+		var me = t * serr;
+		var center = mean1 - mean2;
+		var lb = center - me;
+		var ub = center + me;
+
+		tint2_interval.setText(
+			'(' + round(lb, PRECISION) + ', '
+			+ round(ub, PRECISION) + ')<br/><br/>'
+			+ '<i>t<sub>c</sub></i> = ' + round(t, PRECISION) + '&nbsp;&nbsp;&nbsp;&nbsp;'
+			+ '<i>df</i> = ' + round(df, PRECISION)	+ '<br/>'
+			+ '<i>E</i> = ' + round(me, PRECISION) + '<br/><br/>'
+			+ '<table>'
+			+ '<tr>'
+			+ '<td style="width:160px"><i>x&#772;<sub>1</sub></i> = ' + round(mean1, PRECISION) + '</td>'
+			+ '<td style="width:160px"><i>s<sub>1</sub></i> = ' + round(std1, PRECISION) + '</td>'
+			+ '<td><i>n<sub>1</sub></i> = ' + n1 + '</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '<td><i>x&#772;<sub>2</sub></i> = ' + round(mean2, PRECISION) + '</td>'
+			+ '<td><i>s<sub>2</sub></i> = ' + round(std2, PRECISION) + '</td>'
+			+ '<td><i>n<sub>2</sub></i> = ' + n2 + '</td>'
+			+ '</tr>'
+			+ '<td><i>x&#772;<sub>1</sub></i> - <i>x&#772;<sub>2</sub></i> = ' + round(center, PRECISION) + '</td>'
+			+ '<tr>'
+			+ '</table>'
+		);
+	}
+
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	////////////////////// Confidence Interval for Two Proportions /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var pint2_board = JXG.JSXGraph.initBoard('prop-int_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var pint2_x1 = pint2_board.create('input', [0.5, 8, '', 'x<sub>1</sub> = '], inputParam);
+pint2_x1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint2_docalc(); } };
+
+var pint2_n1 = pint2_board.create('input', [0.5, 7, '', 'n<sub>1</sub> = '], inputParam);
+pint2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint2_docalc(); } };
+
+var pint2_x2 = pint2_board.create('input', [5, 8, '', 'x<sub>2</sub> = '], inputParam);
+pint2_x2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint2_docalc(); } };
+
+var pint2_n2 = pint2_board.create('input', [5, 7, '', 'n<sub>2</sub> = '], inputParam);
+pint2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint2_docalc(); } };
+
+var pint2_c = pint2_board.create('input', [0.5, 6, '', 'c = '], inputParam);
+pint2_c.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { pint2_docalc(); } };
+
+var pint2_interval = pint2_board.create('text', [0.5, 5, ''], textParam);
+
+var pint2_calculate = pint2_board.create('button', [6, 5.8, 'Calculate',
+	function() { pint2_docalc(); }], { frozen: true, anchorY: 'top' });
+
+function pint2_docalc() {
+
+	var c = evalstr(pint2_c.rendNodeInput.value);
+
+	var x1 = evalstr(pint2_x1.rendNodeInput.value);
+	var n1 = evalstr(pint2_n1.rendNodeInput.value);
+	var x2 = evalstr(pint2_x2.rendNodeInput.value);
+	var n2 = evalstr(pint2_n2.rendNodeInput.value);
+
+	if (isNaN(c) || isNaN(x1) || isNaN(n1) || isNaN(x2) || isNaN(n2)) {
+		pint2_interval.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+	} else if (n1 < x1 || n2 < x2) {
+		pint2_interval.setText('Oops! The sample size, <i>n</i>, must be greater than<br/>&nbsp;&nbsp;&nbsp;or equal to <i>x</i>.');
+	} else if (n1 <= 0 || n2 <= 0) {
+		pint2_interval.setText('Oops! The sample size, <i>n</i>, must be larger than zero.');
+	} else if (x1 < 0 || x2 < 0) {
+		pint2_interval.setText('Oops! The value of <i>x</i>, must be between 0 and <i>n</i>.');
+	} else {
+
+		var p1 = x1 / n1;
+		var p2 = x2 / n2;
+
+		var serr = sqrt( p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2 );
+
+		var z = Math.abs(jStat.normal.inv((1 - c) / 2, 0, 1));
+		var me = z * serr;
+		var center = x1 / n1 - x2 / n2;
+		var lb = center - me;
+		var ub = center + me;
+
+		pint2_interval.setText(
+			'(' + round(lb, PRECISION)
+			+ ', ' + round(ub, PRECISION) + ')<br/>'
+			+ 'z<sub>c</sub> = ' + round(z, PRECISION) + '<br/><br/>'
+			+ 'p&#770;<sub>1</sub> = ' + round(x1 / n1, PRECISION) + '<br/>'
+			+ 'p&#770;<sub>2</sub> = ' + round(x2 / n2, PRECISION) + '<br/><br/>'
+			+ 'p&#770;<sub>1</sub> - p&#770;<sub>2</sub> = ' + round(center, PRECISION) + '<br/>'
+			+ 'E = ' + round(me, PRECISION));
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////// Test for a Mean (Normal) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ztest_board = JXG.JSXGraph.initBoard('z-test', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ztest_mu = ztest_board.create('input', [0.5, 9, '', 'Null Hypothesis: <i>&mu;</i> = '], inputParam);
+ztest_mu.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest_docalc(); } };
+
+var ztest_alt = ztest_board.create('text', [0.5, 8, 'Alternative Hypothesis:'], textParam);
+
+var ztest_cb_ne = JSXCheckbox(ztest_board, 4, 8, '&ne;', true,
+	function() {
+		setCheckbox(ztest_cb_ne, true);
+		setCheckbox(ztest_cb_lt, false);
+		setCheckbox(ztest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ztest_cb_lt = JSXCheckbox(ztest_board, 5, 8, '&lt;', false,
+	function() {
+		setCheckbox(ztest_cb_ne, false);
+		setCheckbox(ztest_cb_lt, true);
+		setCheckbox(ztest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ztest_cb_gt = JSXCheckbox(ztest_board, 6, 8, '&gt;', false,
+	function() {
+		setCheckbox(ztest_cb_ne, false);
+		setCheckbox(ztest_cb_lt, false);
+		setCheckbox(ztest_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ztest_mean = ztest_board.create('input', [0.5, 7, '', '<i>x&#772;</i> = '], inputParam);
+ztest_mean.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest_docalc(); } };
+
+var ztest_std = ztest_board.create('input', [0.5, 6, '', '<i>&sigma;</i> = '], inputParam);
+ztest_std.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest_docalc(); } };
+
+var ztest_n = ztest_board.create('input', [0.5, 5, '', '<i>n</i> = '], inputParam);
+ztest_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest_docalc(); } };
+
+var ztest_list = ztest_board.create('input', [0.5, 4, 'L1', '<i>List:</i> '], inputParam);
+ztest_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ztest_list.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest_docalc(); } };
+
+var ztest_output = ztest_board.create('text', [0.5, 3, ''], textParam);
+
+var ztest_cb_stats = JSXCheckbox(ztest_board, 6, 7, 'Input from Stats', true,
+	function() {
+		setCheckbox(ztest_cb_stats, true);
+		setCheckbox(ztest_cb_data, false);
+		ztest_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest_mean.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest_n.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ztest_cb_data = JSXCheckbox(ztest_board, 6, 6, 'Input from Data', false,
+	function() {
+		setCheckbox(ztest_cb_stats, false);
+		setCheckbox(ztest_cb_data, true);
+		ztest_list.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest_mean.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest_n.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var ztest_calculate = ztest_board.create('button', [6, 5, 'Calculate',
+	function() { ztest_docalc(); }], buttonParam);
+
+function ztest_docalc() {
+
+	var std = evalstr(ztest_std.rendNodeInput.value);
+	var mu = evalstr(ztest_mu.rendNodeInput.value);
+	var p = NaN, n = NaN, mean = NaN;
+	var listerror = false;
+
+	if(ztest_cb_stats.Value()) {
+		n = evalstr(ztest_n.rendNodeInput.value);
+		mean = evalstr(ztest_mean.rendNodeInput.value);
+	} else {
+		var list = ztest_list.rendNodeInput.value;
+		if (list.includes(',')) {
+			var lists = list.split(',');
+			var xdata = getRawData(getListByName(lists[0]));
+			var fdata = getRawData(getListByName(lists[1]));
+			if (xdata !== undefined && fdata !== undefined) {
+				n = xdata.length;
+				mean = stats.wmean(xdata, fdata);
+			} else {
+				listerror = true;
+			}
+		} else {
+			xdata = getRawData(getListByName(list));
+			if (xdata !== undefined) {
+				mean = stats.mean(xdata);
+				n = xdata.length;
+			} else {
+				listerror = true;
+			}
+		}
+	}
+
+	if(isNaN(mu) || isNaN(mean) || isNaN(std) || isNaN(n)) {
+		if (listerror) {
+			ztest_output.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			ztest_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n <= 0) {
+		ztest_output.setText('Oops! The sample size, <i>n</i> must be greater than zero.');
+	} else {
+
+		var z = (mean - mu) / (std / sqrt(n));
+
+		if(isChecked(ztest_cb_ne)) {
+			p = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+		} else if(isChecked(ztest_cb_lt)) {
+			p = jStat.normal.cdf(z, 0, 1);
+		} else {
+			p = 1 - jStat.normal.cdf(z, 0, 1);
+		}
+
+		ztest_output.setText(
+			'<i>z</i> = ' + round(z, PRECISION) + '<br/>'
+			+ '<i>p</i>-value = ' + round(p, PRECISION) + '<br/><br/>'
+			+ '<i>x&#772;</i> = ' + round(mean, PRECISION) + '<br/>'
+			+ '<i>&sigma;</i> = ' + round(std, PRECISION) + '<br/>'
+			+ '<i>n</i> = ' + n);
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////// Test for a Mean (T) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ttest_board = JXG.JSXGraph.initBoard('t-test', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ttest_mu = ttest_board.create('input', [0.5, 9, '', 'Null Hypothesis: <i>&mu;</i> = '], inputParam);
+ttest_mu.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest_docalc(); } };
+
+var ttest_alt = ttest_board.create('text', [0.5, 8, 'Alternative Hypothesis:'], textParam);
+
+var ttest_cb_ne = JSXCheckbox(ttest_board, 4, 8, '&ne;', true,
+	function() {
+		setCheckbox(ttest_cb_ne, true);
+		setCheckbox(ttest_cb_lt, false);
+		setCheckbox(ttest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ttest_cb_lt = JSXCheckbox(ttest_board, 5, 8, '&lt;', false,
+	function() {
+		setCheckbox(ttest_cb_ne, false);
+		setCheckbox(ttest_cb_lt, true);
+		setCheckbox(ttest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ttest_cb_gt = JSXCheckbox(ttest_board, 6, 8, '&gt;', false,
+	function() {
+		setCheckbox(ttest_cb_ne, false);
+		setCheckbox(ttest_cb_lt, false);
+		setCheckbox(ttest_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ttest_mean = ttest_board.create('input', [0.5, 7, '', '<i>x&#772;</i> = '], inputParam);
+ttest_mean.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest_docalc(); } };
+
+var ttest_std = ttest_board.create('input', [0.5, 6, '', 's = '], inputParam);
+ttest_std.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest_docalc(); } };
+
+var ttest_n = ttest_board.create('input', [0.5, 5, '', 'n = '], inputParam);
+ttest_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest_docalc(); } };
+
+var ttest_list = ttest_board.create('input', [0.5, 4, 'L1', 'List: '], inputParam);
+ttest_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ttest_list.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest_docalc(); } };
+
+var ttest_output = ttest_board.create('text', [0.5, 3, ''], textParam);
+
+var ttest_cb_stats = JSXCheckbox(ttest_board, 6, 7, 'Input from Stats', true,
+	function() {
+		setCheckbox(ttest_cb_stats, true);
+		setCheckbox(ttest_cb_data, false);
+		ttest_list.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest_mean.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest_n.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest_std.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ttest_cb_data = JSXCheckbox(ttest_board, 6, 6, 'Input from Data', false,
+	function() {
+		setCheckbox(ttest_cb_stats, false);
+		setCheckbox(ttest_cb_data, true);
+		ttest_list.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest_mean.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest_n.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest_std.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var ttest_calculate = ttest_board.create('button', [6, 5, 'Calculate',
+	function() { ttest_docalc(); }], buttonParam);
+
+function ttest_docalc() {
+
+	var mu = evalstr(ttest_mu.rendNodeInput.value);
+	var p = NaN, std = NaN, n = NaN, mean = NaN;
+	var listerror = false;
+
+	if(ttest_cb_stats.Value()) {
+		n = evalstr(ttest_n.rendNodeInput.value);
+		mean = evalstr(ttest_mean.rendNodeInput.value);
+		std = evalstr(ttest_std.rendNodeInput.value);
+	} else {
+		var list = ttest_list.rendNodeInput.value;
+		if (list.includes(',')) {
+			var lists = list.split(',');
+			var xdata = getRawData(getListByName(lists[0]));
+			var fdata = getRawData(getListByName(lists[1]));
+			if (xdata !== undefined && fdata !== undefined) {
+				n = xdata.length;
+				mean = stats.wmean(xdata, fdata);
+				std = stats.wstdev(xdata, fdata);
+			} else {
+				listerror = true;
+			}
+		} else {
+			xdata = getRawData(getListByName(list));
+			if (xdata !== undefined) {
+				mean = stats.mean(xdata);
+				std = stats.stdev(xdata);
+				n = xdata.length;
+			} else {
+				listerror = true;
+			}
+		}
+	}
+
+	if (isNaN(mu) || isNaN(mean) || isNaN(std) || isNaN(n)) {
+		if (listerror) {
+			ttest_output.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			ttest_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n <= 1) {
+		ttest_output.setText('Oops! The sample size, <i>n</i> must be greater than one.');
+	} else {
+
+		var t = (mean - mu) / (std / sqrt(n));
+
+		if(isChecked(ttest_cb_ne)) {
+			p = 2 * jStat.studentt.cdf(-Math.abs(t), n - 1);
+		} else if(isChecked(ttest_cb_lt)) {
+			p = jStat.studentt.cdf(t, n - 1);
+		} else {
+			p = 1 - jStat.studentt.cdf(t, n - 1);
+		}
+
+		ttest_output.setText('<i>t</i> = '
+			+ round(t, PRECISION) + '<br/>'
+			+ '<i>p</i>-value = ' + round(p, PRECISION) + '<br/><br/>'
+			+ '<i>x&#772;</i> = ' + round(mean, PRECISION) + '<br/>'
+			+ '<i>s</i> = ' + round(std, PRECISION) + '<br/>'
+			+ '<i>n</i> = ' + n);
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////// Test for a Proportion /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ptest_board = JXG.JSXGraph.initBoard('prop-test', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ptest_p = ptest_board.create('input', [0.5, 9, '', 'Null Hypothesis: <i>p</i> = '], inputParam);
+ptest_p.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest_docalc(); } };
+
+var ptest_alt = ptest_board.create('text', [0.5, 8, 'Alternative Hypothesis:'], textParam);
+
+var ptest_cb_ne = JSXCheckbox(ptest_board, 4, 8, '&ne;', true,
+	function() {
+		setCheckbox(ptest_cb_ne, true);
+		setCheckbox(ptest_cb_lt, false);
+		setCheckbox(ptest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ptest_cb_lt = JSXCheckbox(ptest_board, 5, 8, '&lt;', false,
+	function() {
+		setCheckbox(ptest_cb_ne, false);
+		setCheckbox(ptest_cb_lt, true);
+		setCheckbox(ptest_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ptest_cb_gt = JSXCheckbox(ptest_board, 6, 8, '&gt;', false,
+	function() {
+		setCheckbox(ptest_cb_ne, false);
+		setCheckbox(ptest_cb_lt, false);
+		setCheckbox(ptest_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ptest_x = ptest_board.create('input', [0.5, 7, '', '<i>x</i> = '], inputParam);
+ptest_x.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest_docalc(); } };
+
+var ptest_n = ptest_board.create('input', [0.5, 6, '', 'n = '], inputParam);
+ptest_n.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest_docalc(); } };
+
+var ptest_output = ptest_board.create('text', [1, 4.5, ''], textParam);
+
+var ptest_calculate = ptest_board.create('button', [6, 6, 'Calculate',
+	function() { ptest_docalc(); }], buttonParam);
+
+function ptest_docalc() {
+
+	var p0 = evalstr(ptest_p.rendNodeInput.value);
+	var x = NaN, n = NaN, pval = NaN, phat = NaN;
+
+	n = evalstr(ptest_n.rendNodeInput.value);
+	x = evalstr(ptest_x.rendNodeInput.value);
+
+	if(isNaN(p0) || isNaN(x) || isNaN(n)) {
+		ptest_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+	} else if(x > n) {
+		ptest_output.setText("Oops! The sample size, <i>n</i>, must be larger than <i>x</i>.");
+	} else {
+
+		phat = x / n;
+
+		var z = (phat - p0) / sqrt(p0 * (1 - p0) / n);
+
+		if(isChecked(ptest_cb_ne)) {
+			pval = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+		} else if(isChecked(ptest_cb_lt)) {
+			pval = jStat.normal.cdf(z, 0, 1);
+		} else {
+			pval = 1 - jStat.normal.cdf(z, 0, 1);
+		}
+
+		ptest_output.setText(
+			'<i>p&#770;</i> = ' + round(phat, PRECISION) + '<br/><br/>'
+			+ '<i>z</i> = ' + round(z, PRECISION) + '<br/>'
+			+ '<i>p</i>-value = ' + round(pval, PRECISION));
+	}
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	////////////////////////////////// Test for Two Means (Normal) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ztest2_board = JXG.JSXGraph.initBoard('z-test_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ztest2_alt = ztest2_board.create('text', [0.5, 9, 'Alternative Hypothesis:'],
+		{ fixed :true, frozen: true, anchorY: 'top', fontSize: 18 });
+var ztest2_cb_ne = JSXCheckbox(ztest2_board, 4, 9, '&ne;', true,
+	function() {
+		setCheckbox(ztest2_cb_ne, true);
+		setCheckbox(ztest2_cb_lt, false);
+		setCheckbox(ztest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ztest2_cb_lt = JSXCheckbox(ztest2_board, 5, 9, '&lt;', false,
+	function() {
+		setCheckbox(ztest2_cb_ne, false);
+		setCheckbox(ztest2_cb_lt, true);
+		setCheckbox(ztest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ztest2_cb_gt = JSXCheckbox(ztest2_board, 6, 9, '&gt;', false,
+	function() {
+		setCheckbox(ztest2_cb_ne, false);
+		setCheckbox(ztest2_cb_lt, false);
+		setCheckbox(ztest2_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ztest2_mean1 = ztest2_board.create('input', [0.5, 8, '', '<i>x&#772;<sub>1</sub></i> = '], inputParam);
+ztest2_mean1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_std1 = ztest2_board.create('input', [0.5, 7, '', '<i>&sigma;<sub>1</sub></i> = '], inputParam);
+ztest2_std1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_n1 = ztest2_board.create('input', [0.5, 6, '', '<i>n<sub>1</sub></i> = '], inputParam);
+ztest2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_list1 = ztest2_board.create('input', [0.5, 5, 'L1', 'List<sub>1</sub>: '], inputParam);
+ztest2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ztest2_list1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_mean2 = ztest2_board.create('input', [5.5, 8, '', '<i>x&#772;<sub>2</sub></i> = '], inputParam);
+ztest2_mean2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_std2 = ztest2_board.create('input', [5.5, 7, '', '<i>&sigma;<sub>2</sub></i> = '], inputParam);
+ztest2_std2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_n2 = ztest2_board.create('input', [5.5, 6, '', '<i>n<sub>2</sub></i> = '], inputParam);
+ztest2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_list2 = ztest2_board.create('input', [5.5, 5, 'L2', 'List<sub>2</sub>: '], inputParam);
+ztest2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ztest2_list2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ztest2_docalc(); } };
+
+var ztest2_output = ztest2_board.create('text', [1, 3, ''], textParam);
+
+var ztest2_cb_stats = JSXCheckbox(ztest2_board, 0.5, 4, 'Input from Stats', true,
+	function() {
+		setCheckbox(ztest2_cb_stats, true);
+		setCheckbox(ztest2_cb_data, false);
+		ztest2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest2_mean1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest2_n1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest2_mean2.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest2_n2.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ztest2_cb_data = JSXCheckbox(ztest2_board, 5, 4, 'Input from Data', false,
+	function() {
+		setCheckbox(ztest2_cb_stats, false);
+		setCheckbox(ztest2_cb_data, true);
+		ztest2_list1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest2_mean1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest2_n1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest2_list2.setAttribute({ disabled: false, strokeColor: 'black' });
+		ztest2_mean2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ztest2_n2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var ztest2_calculate = ztest2_board.create('button', [7, 3, 'Calculate',
+	function() { ztest2_docalc(); }], buttonParam);
+
+function ztest2_docalc() {
+
+	var std1 = evalstr(ztest2_std1.rendNodeInput.value);
+	var std2 = evalstr(ztest2_std2.rendNodeInput.value);
+	var mean1 = NaN, mean2 = NaN, n1 = NaN, n2 = NaN;
+
+	if(ztest2_cb_stats.Value()) {
+		n1 = evalstr(ztest2_n1.rendNodeInput.value);
+		n2 = evalstr(ztest2_n2.rendNodeInput.value);
+		mean1 = evalstr(ztest2_mean1.rendNodeInput.value);
+		mean2 = evalstr(ztest2_mean2.rendNodeInput.value);
+	} else {
+		var list1 = ztest2_list1.rendNodeInput.value;
+		var list2 = ztest2_list2.rendNodeInput.value;
+		var xdata1 = getRawData(getListByName(list1));
+		var xdata2 = getRawData(getListByName(list2));
+		if((xdata1 !== undefined) && (xdata2 !== undefined)) {
+			n1 = xdata1.length;
+			n2 = xdata2.length;
+			mean1 = stats.mean(xdata1);
+			mean2 = stats.mean(xdata2);
+		} else {
+			listerror = true;
+		}
+	}
+
+	if (isNaN(mean1) || isNaN(std1) || isNaN(n1) || isNaN(mean2) || isNaN(std2) || isNaN(n2)) {
+		if(listerror) {
+			ztest2_output.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			ztest2_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n1 < 0 || n2 < 0) {
+		ztest2_interval.setText('Oops! The sample sizes must be positive numbers.');
+	} else {
+
+		var z = (mean1 - mean2) / sqrt( sqr(std1) / n1 + sqr(std2) / n2 );
+
+		if(isChecked(ztest2_cb_ne)) {
+			p = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+		} else if(isChecked(ztest2_cb_lt)) {
+			p = jStat.normal.cdf(z, 0, 1);
+		} else {
+			p = 1 - jStat.normal.cdf(z, 0, 1);
+		}
+
+		ztest2_output.setText(
+			'z = ' + round(z, PRECISION) + '<br/>'
+			+ '<i>p</i>-value = ' + round(p, PRECISION) + '<br/><br/>'
+			+ '<table>'
+			+ '<tr>'
+			+ '<td style="width:160px"><i>x&#772;<sub>1</sub></i> = ' + round(mean1, PRECISION) + '</td>'
+			+ '<td style="width:160px"><i>&sigma;<sub>1</sub></i> = ' + round(std1, PRECISION) + '</td>'
+			+ '<td><i>n<sub>1</sub></i> = ' + n1 + '</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '<td><i>x&#772;<sub>2</sub></i> = ' + round(mean2, PRECISION) + '</td>'
+			+ '<td><i>&sigma;<sub>2</sub></i> = ' + round(std2, PRECISION) + '</td>'
+			+ '<td><i>n<sub>2</sub></i> = ' + n2 + '</td>'
+			+ '</tr>'
+			+ '</table>'
+		);
+
+	}
+
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////// Test for Two Means (T) /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ttest2_board = JXG.JSXGraph.initBoard('t-test_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ttest2_alt = ttest2_board.create('text', [0.5, 9, 'Alternative Hypothesis:'],
+		{ fixed :true, frozen: true, anchorY: 'top', fontSize: 18 });
+var ttest2_cb_ne = JSXCheckbox(ttest2_board, 4, 9, '&ne;', true,
+	function() {
+		setCheckbox(ttest2_cb_ne, true);
+		setCheckbox(ttest2_cb_lt, false);
+		setCheckbox(ttest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ttest2_cb_lt = JSXCheckbox(ttest2_board, 5, 9, '&lt;', false,
+	function() {
+		setCheckbox(ttest2_cb_ne, false);
+		setCheckbox(ttest2_cb_lt, true);
+		setCheckbox(ttest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+var ttest2_cb_gt = JSXCheckbox(ttest2_board, 6, 9, '&gt;', false,
+	function() {
+		setCheckbox(ttest2_cb_ne, false);
+		setCheckbox(ttest2_cb_lt, false);
+		setCheckbox(ttest2_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ttest2_mean1 = ttest2_board.create('input', [0.5, 8, '', '<i>x&#772;<sub>1</sub></i> = '], inputParam);
+ttest2_mean1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_std1 = ttest2_board.create('input', [0.5, 7, '', '<i>s<sub>1</sub></i> = '], inputParam);
+ttest2_std1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_n1 = ttest2_board.create('input', [0.5, 6, '', '<i>n<sub>1</sub></i> = '], inputParam);
+ttest2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_list1 = ttest2_board.create('input', [0.5, 5, 'L1', 'List<sub>1</sub>: '], inputParam);
+ttest2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ttest2_list1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_mean2 = ttest2_board.create('input', [4, 8, '', '<i>x&#772;<sub>2</sub></i> = '], inputParam);
+ttest2_mean2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_std2 = ttest2_board.create('input', [4, 7, '', '<i>s<sub>2</sub></i> = '], inputParam);
+ttest2_std2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_n2 = ttest2_board.create('input', [4, 6, '', '<i>n<sub>2</sub></i> = '], inputParam);
+ttest2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_list2 = ttest2_board.create('input', [4, 5, 'L2', 'List<sub>2</sub>: '], inputParam);
+ttest2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+ttest2_list2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ttest2_docalc(); } };
+
+var ttest2_cb_pooled = JSXCheckbox(ttest2_board, 0.5, 4, 'Pooled Variance', false,
+	function() {
+		toggleCheckbox(ttest2_cb_pooled);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ttest2_output = ttest2_board.create('text', [0.5, 3, ''], textParam);
+
+var ttest2_cb_stats = JSXCheckbox(ttest2_board, 7.5, 7.5, 'Statistics', true,
+	function() {
+		setCheckbox(ttest2_cb_stats, true);
+		setCheckbox(ttest2_cb_data, false);
+		ttest2_list1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_mean1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_n1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_std1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_list2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_mean2.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_n2.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_std2.setAttribute({ disabled: false, strokeColor: 'black' });
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ttest2_cb_data = JSXCheckbox(ttest2_board, 7.5, 7, 'Data', false,
+	function() {
+		setCheckbox(ttest2_cb_stats, false);
+		setCheckbox(ttest2_cb_data, true);
+		ttest2_list1.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_mean1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_n1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_std1.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_list2.setAttribute({ disabled: false, strokeColor: 'black' });
+		ttest2_mean2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_n2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+		ttest2_std2.setAttribute({ disabled: true, strokeColor: 'lightgray' });
+	}, { fontSize: 18, anchorY: 'top', frozen: true });
+
+var ttest2_calculate = ttest2_board.create('button', [7.5, 6, 'Calculate',
+	function() { ttest2_docalc(); }], { frozen: true, anchorY: 'top' });
+
+function ttest2_docalc() {
+
+	var mean1 = NaN, std1 = NaN, n1 = NaN;
+	var mean2 = NaN, std2 = NaN, n2 = NaN;
+	var listerror = false;
+
+	if (ttest2_cb_stats.Value()) {
+		n1 = evalstr(ttest2_n1.rendNodeInput.value);
+		n2 = evalstr(ttest2_n2.rendNodeInput.value);
+		mean1 = evalstr(ttest2_mean1.rendNodeInput.value);
+		mean2 = evalstr(ttest2_mean2.rendNodeInput.value);
+		std1 = evalstr(ttest2_std1.rendNodeInput.value);
+		std2 = evalstr(ttest2_std2.rendNodeInput.value);
+	} else if (ttest2_cb_data.Value()) {
+		var list1 = ttest2_list1.rendNodeInput.value;
+		var list2 = ttest2_list2.rendNodeInput.value;
+		var xdata1 = getRawData(getListByName(list1));
+		var xdata2 = getRawData(getListByName(list2));
+		if ((xdata1 !== undefined) && (xdata2 !== undefined)) {
+			n1 = xdata1.length;
+			n2 = xdata2.length;
+			mean1 = stats.mean(xdata1);
+			mean2 = stats.mean(xdata2);
+			std1 = stats.stdev(xdata1);
+			std2 = stats.stdev(xdata2);
+		} else {
+			listerror = true;
+		}
+	}
+
+	if (isNaN(mean1) || isNaN(std1) || isNaN(n1) || isNaN(mean2) || isNaN(std2) || isNaN(n2)) {
+		if(listerror) {
+			ttest2_output.setText('One of your lists was not found,<br/>&nbsp;&nbsp;&nbsp;try using L1 or L2 as the name of your lists.');
+		} else {
+			ttest2_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+		}
+	} else if (n1 <= 1 || n2 <= 1) {
+		ttest2_interval.setText('Oops! The sample sizes must be<br/>&nbsp;&nbsp;&nbsp;greater than or equal to one.');
+	} else {
+
+		var serr = 0, p = 0, df = 0;
+		if (isChecked(ttest2_cb_pooled)) {
+			df = n1 + n2 - 2;
+			var pooledsd = sqrt( ((n1 - 1) * sqr(std1) + (n2 - 1) * sqr(std2)) / df);
+			serr = sqrt( sqr(pooledsd) / n1 + sqr(pooledsd) / n2);
+		} else {
+			serr = sqrt( sqr(std1) / n1 + sqr(std2) / n2);
+			var num = sqr( sqr(std1) / n1 + sqr(std2) / n2 );
+			var denom1 = (1 / (n1 - 1)) * sqr( sqr(std1) / n1 );
+			var denom2 = (1 / (n2 - 1)) * sqr( sqr(std2) / n2 );
+			df = num / (denom1 + denom2);
+		}
+
+		var t = (mean1 - mean2) / serr;
+
+		if(isChecked(ttest2_cb_ne)) {
+			p = 2 * jStat.studentt.cdf(-Math.abs(t), df);
+		} else if(isChecked(ttest2_cb_lt)) {
+			p = jStat.studentt.cdf(t, df);
+		} else {
+			p = 1 - jStat.studentt.cdf(t, df);
+		}
+
+		ttest2_output.setText(
+			'<i>t</i> = ' + round(t, PRECISION) + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+			+ '<i>df</i> = ' + round(df, PRECISION) + '<br/>'
+			+ '<i>p</i>-value = ' + round(p, PRECISION) + '<br/><br/>'
+			+ '<table>'
+			+ '<tr>'
+			+ '<td style="width:160px"><i>x&#772;<sub>1</sub></i> = ' + round(mean1, PRECISION) + '</td>'
+			+ '<td style="width:160px"><i>&sigma;<sub>1</sub></i> = ' + round(std1, PRECISION) + '</td>'
+			+ '<td><i>n<sub>1</sub></i> = ' + n1 + '</td>'
+			+ '</tr>'
+			+ '<tr>'
+			+ '<td><i>x&#772;<sub>2</sub></i> = ' + round(mean2, PRECISION) + '</td>'
+			+ '<td><i>&sigma;<sub>2</sub></i> = ' + round(std2, PRECISION) + '</td>'
+			+ '<td><i>n<sub>2</sub></i> = ' + n2 + '</td>'
+			+ '</tr>'
+			+ '</table>'
+		);
+
+	}
+
+}
+
+</script>
+
+<!--////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////// Test for Two Proportions /////////
+	////////////////////////////////////////////////////////////////////////-->
+
+<script>
+
+var ptest2_board = JXG.JSXGraph.initBoard('prop-test_2samp', {
+		boundingbox: [0,10,10,0],
+      	showCopyright: false,
+      	showNavigation: false,
+		keepaspectratio: false,
+		axis: false,
+		zoom: {
+			factorX: 1.25,
+			factorY: 1.25,
+			wheel: false,
+			needshift: false,
+			eps: 0.1,
+				enabled: false
+		  },
+		pan: {
+			enabled: false
+		},
+    	keyboard: {
+        	enabled: false
+    	}
+    });
+
+var ptest2_alt = ptest2_board.create('text', [0.5, 9, 'Alternative Hypothesis:'], textParam);
+
+var ptest2_cb_ne = JSXCheckbox(ptest2_board, 4, 9, '&ne;', true,
+	function() {
+		setCheckbox(ptest2_cb_ne, true);
+		setCheckbox(ptest2_cb_lt, false);
+		setCheckbox(ptest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ptest2_cb_lt = JSXCheckbox(ptest2_board, 5, 9, '&lt;', false,
+	function() {
+		setCheckbox(ptest2_cb_ne, false);
+		setCheckbox(ptest2_cb_lt, true);
+		setCheckbox(ptest2_cb_gt, false);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ptest2_cb_gt = JSXCheckbox(ptest2_board, 6, 9, '&gt;', false,
+	function() {
+		setCheckbox(ptest2_cb_ne, false);
+		setCheckbox(ptest2_cb_lt, false);
+		setCheckbox(ptest2_cb_gt, true);
+	}, { fontSize: 18, frozen: true, anchorY: 'top'});
+
+var ptest2_x1 = ptest2_board.create('input', [0.5, 8, '', '<i>x<sub>1</sub></i> = '], inputParam);
+ptest2_x1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest2_docalc(); } };
+
+var ptest2_n1 = ptest2_board.create('input', [0.5, 7, '', '<i>n<sub>1</sub></i> = '], inputParam);
+ptest2_n1.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest2_docalc(); } };
+
+var ptest2_x2 = ptest2_board.create('input', [5.5, 8, '', '<i>x<sub>2</sub></i> = '], inputParam);
+ptest2_x2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest2_docalc(); } };
+
+var ptest2_n2 = ptest2_board.create('input', [5.5, 7, '', '<i>n<sub>2</sub></i> = '], inputParam);
+ptest2_n2.rendNodeInput.onkeypress = function(e) { if(e.which == 13) { ptest2_docalc(); } };
+
+var ptest2_output = ptest2_board.create('text', [1, 5, ''], textParam);
+
+var ptest2_calculate = ptest2_board.create('button', [7, 6, 'Calculate',
+	function() { ptest2_docalc(); }], buttonParam);
+
+function ptest2_docalc() {
+
+	var x1 = evalstr(ptest2_x1.rendNodeInput.value);
+	var n1 = evalstr(ptest2_n1.rendNodeInput.value);
+	var x2 = evalstr(ptest2_x2.rendNodeInput.value);
+	var n2 = evalstr(ptest2_n2.rendNodeInput.value);
+
+	if (isNaN(x1) || isNaN(n1) || isNaN(x2) || isNaN(n2)) {
+		ptest2_output.setText('One or more input variables is blank or invalid.<br/>&nbsp;&nbsp;&nbsp;Please check your input.');
+	} else if (n1 < 0 || n2 < 0) {
+		ptest2_output.setText('Oops! The sample sizes must be<br/>&nbsp;&nbsp;&nbsp;greater than or equal to zero.');
+	} else if (x1 > n1 || x2 > n2) {
+		ptest2_output.setText('Oops! The sample sizes must be<br/>&nbsp;&nbsp;&nbsp;greater than or equal<br/>&nbsp;&nbsp;&nbsp;to the values of <i>x</i>.');
+	} else {
+
+		var p1 = x1 / n1;
+		var p2 = x2 / n2;
+
+		var p = (x1 + x2) / (n1 + n2);
+		var z = (p1 - p2) / sqrt( p * (1 - p) / n1 + p * (1 - p) / n2 );;
+
+		if(isChecked(ptest2_cb_ne)) {
+			p = 2 * jStat.normal.cdf(-Math.abs(z), 0, 1);
+		} else if(isChecked(ptest2_cb_lt)) {
+			p = jStat.normal.cdf(z, 0, 1);
+		} else if(ptest2_cb_gt.Value()) {
+			p = 1 - jStat.normal.cdf(z, 0, 1);
+		}
+
+		ptest2_output.setText(
+			'<i>z</i> = ' + round(z, PRECISION)
+			+ '<br/><i>p</i>-value = ' + round(p, PRECISION));
+	}
+
+}
+
+</script>
+
+</body>
+</html>
